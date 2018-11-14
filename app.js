@@ -64,7 +64,10 @@ const parseProjectInfo = $ => {
 const saveProject = project => {
 	if (!project) return console.error('Project Null or Undefined', project);
 	let fileName = 'Project_' + project.id + '_' + project.name.replace(/\s/g, '_') + '.json';
-	fs.writeFile(fileName, JSON.stringify(project));
+	fs.writeFile(fileName, JSON.stringify(project, null, 1), err => {
+		if (err) return console.error(err);
+		console.log('Project Saved at ' + fileName);
+	});
 };
 
 const requestComments = (projectId, todoId) =>
@@ -82,7 +85,8 @@ requestProject(config.projectId)
 	.then($ => {
 		console.info('Request Succeed');
 		let project = parseProjectInfo($);
+		console.info(project.lists.length + ' Lists Found');
 		saveProject(project);
-		console.log('Results', project);
+		//console.log('Results', project);
 	})
 	.catch(onRequestError);
