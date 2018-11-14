@@ -4,4 +4,4 @@ npm-debug.log
 .env
 .DS_Store
 Project*.json
-Todo*.json
+Todo*.txt
