@@ -52,9 +52,12 @@ const parseProjectInfo = $ => {
 		let $items = $('#list_' + list.id + '_items .item_wrapper');
 		list.todos = $items.map((i,e) => {
 			let $item = $(e);
+			let itemId = $item.attr('record');
+			let $title = $item.find('#item_wrap_' + itemId);
+			//list_29629224_item_223348400_text
 			return {
-				id: $item.attr('record'),
-				title: $item.first('span.content > span').text()
+				id: itemId,
+				title: $title.text().replace(/(^\s+|[\t\r\n]|\s+$)/g, '')
 			};
 		}).get();
 	}
@@ -81,9 +84,10 @@ const requestComments = (projectId, todoId) =>
 	});
 
 // Execute
+console.log('Running ...');
 requestProject(config.projectId)
 	.then($ => {
-		console.info('Request Succeed');
+		console.info('Project Received');
 		let project = parseProjectInfo($);
 		console.info(project.lists.length + ' Lists Found');
 		saveProject(project);
