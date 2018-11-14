@@ -116,7 +116,7 @@ const requestComments = (projectId, todoId) =>
 
 const saveComments = async (projectName, listName, todo, commentHtml) => {
 	if (!commentHtml) return console.error('Comment Null or Undefined', projectName, listName, todo, commentHtml);
-	let fileName = 'Todo_' + todo.id + '_' + projectName.replace(/\s/g, '_') + '_' + listName.replace(/\s/g, '_') + '_' + todo.title.replace(/\s/g, '_') + '.txt';
+	let fileName = 'Todo_' + todo.id + '_' + projectName.replace(/\s/g, '_') + '_' + listName.replace(/\s/g, '_') + '_' + todo.title.replace(/[/\\?%*:|"<>]/g, '-').replace(/\s/g, '_') + '.txt';
 	fs.writeFile(fileName, commentHtml, err => {
 		if (err) return console.error(err);
 		console.log('Comment Saved at ' + fileName);
@@ -131,8 +131,8 @@ requestProject(config.projectId)
 		let project = parseProjectInfo($);
 		console.info(project.lists.length + ' Lists Found');
 		saveProject(project);
-		//getComments(project);
-		getTodoComments(project, project.lists[1], project.lists[1].todos[0]);
+		getComments(project);
+		//getTodoComments(project, project.lists[1], project.lists[1].todos[0]);
 		//console.log('Results', project);
 	})
 	.catch(onRequestError);
