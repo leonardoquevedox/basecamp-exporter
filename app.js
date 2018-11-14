@@ -10,6 +10,8 @@ const config = {
 		'twisted_token=1c1e8b794c2f3bb489e4bd4f67e9c370c12a; _jsuid=1411205140; session_token=fa7cf68e2817851fe48d; _basecamp_session_v2=BAh7CkkiD3Nlc3Npb25faWQGOgZFRiIlNjMwNmNhOGExMDVlMDYyNWMwZjdhNzE5ZmU0MTA2ZWVJIgx1c2VyX2lkBjsARmkDNJRuSSIQaWRlbnRpdHlfaWQGOwBGaQN5Ai1JIh1tZXNhdXJlX3BhZ2VfcGVyZm9ybWFuY2UGOwBGRkkiEF9jc3JmX3Rva2VuBjsARkkiMTdBL0huTzR5YnBBbXhCOVN4cFZtbFFHeWZDMklKUi9oZG1ERC84WnpTb0k9BjsARg%3D%3D--4016130c70e27f762461fc7a38d4cfde568e5264; flashVersion='
 };
 
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 const onRequestError = error => {
 	console.error(error);
 };
@@ -73,6 +75,12 @@ const saveProject = project => {
 	});
 };
 
+async function getComments(){
+	console.log('Waiting 5 seconds as if we\'re getting comments.');
+	await sleep(5000);
+	console.log('Waited those 5 seconds.');
+}
+
 const requestComments = (projectId, todoId) =>
 	requestPromise({
 		uri: 'https://' + config.account + '.basecamphq.com/projects/' + projectId + '/todo_items/' + todoId + '/comments',
@@ -91,6 +99,7 @@ requestProject(config.projectId)
 		let project = parseProjectInfo($);
 		console.info(project.lists.length + ' Lists Found');
 		saveProject(project);
+		getComments(project);
 		//console.log('Results', project);
 	})
 	.catch(onRequestError);
