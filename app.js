@@ -12,7 +12,7 @@ const onRequestError = error => {
 	console.error(error);
 };
 
-const requestProject = projectId => 
+const requestProject = projectId =>
 	requestPromise({
 		uri: 'https://' + config.account + '.basecamphq.com/projects/' + projectId + '/todo_lists',
 		headers: {
@@ -25,26 +25,49 @@ const requestProject = projectId =>
 const parseProjectInfo = $ => {
 	let project = {
 		id: config.projectId,
-		name: $('#Header h1').clone().children().remove().end().text().replace(/(^\s+|[\t\r\n]|\s+$)/g,''),
-		lists: $('.list_wrapper').map((i, e) => {
-			let $wrapper = $(e);
-			return {
-				id: $wrapper.attr('record'), 
-				name: $wrapper.find('h2 a').text().replace(/(^\s+|[\t\r\n]|\s+$)/g,'')
-			};
-		}).get()
+		name: $('#Header h1')
+			.clone()
+			.children()
+			.remove()
+			.end()
+			.text()
+			.replace(/(^\s+|[\t\r\n]|\s+$)/g, ''),
+		lists: $('.list_wrapper')
+			.map((i, e) => {
+				let $wrapper = $(e);
+				return {
+					id: $wrapper.attr('record'),
+					name: $wrapper
+						.find('h2 a')
+						.text()
+						.replace(/(^\s+|[\t\r\n]|\s+$)/g, '')
+				};
+			})
+			.get()
 	};
+	for (let i = 0; i < project.lists.length; i++) {
+		let list = project.lists[i];
+		let $items = $('#list_' + list.id + '_items .item_wrapper');
+		list.todos = $items.map((i,e) => {
+			let $item = $(e);
+			return {
+				id: $item.attr('record'),
+				title: $item.first('span.content > span').text()
+			};
+		}).get();
+	}
 	return project;
 };
 
-const requestComments = (projectId, todoId) =>	requestPromise({
-	uri: 'https://' + config.account + '.basecamphq.com/projects/' + projectId + '/todo_items/' + todoId + '/comments',
-	headers: {
-		'User-Agent': 'Request-Promise',
-		Cookie: config.sessionCookie
-	},
-	transform: body => cheerio.load(body)
-});
+const requestComments = (projectId, todoId) =>
+	requestPromise({
+		uri: 'https://' + config.account + '.basecamphq.com/projects/' + projectId + '/todo_items/' + todoId + '/comments',
+		headers: {
+			'User-Agent': 'Request-Promise',
+			Cookie: config.sessionCookie
+		},
+		transform: body => cheerio.load(body)
+	});
 
 // Execute
 requestProject(config.projectId)
