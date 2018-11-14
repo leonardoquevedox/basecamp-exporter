@@ -75,33 +75,21 @@ const saveProject = async project => {
 	});
 };
 
-let commentsLoaded = 0;
 const getComments = async project => {
 	project.lists.forEach(list => {
 		list.todos.forEach(async todo => {
-			if (config.commentLimit && commentsLoaded >= config.commentLimit) return;
+			let fileName = 'Todo_' + todo.id + '_' + project.name.replace(/\s/g, '_') + '_' + list.name.replace(/\s/g, '_') + '_' + todo.title.replace(/[/\\?%*:|"<>]/g, '-').replace(/\s/g, '_') + '.txt';
+			if (fs.existsSync(fileName)) return; // don't load twice
 			requestComments(project.id, todo.id)
 				.then($ => {
 					let $comments = $('#comments');
 					if ($comments.children().length < 1) return;
-					commentsLoaded++;
-					saveComments(project.name, list.name, todo, $comments.html());
+					saveComments(fileName, $comments.html());
 				})
 				.catch(onRequestError);
 			if (config.commentDelay) await sleep(config.commentDelay);
 		});
 	});
-};
-const getTodoComments = async (project, list, todo) => {
-	requestComments(project.id, todo.id)
-		.then($ => {
-			let $comments = $('#comments');
-			if ($comments.children().length < 1) return;
-			commentsLoaded++;
-			saveComments(project.name, list.name, todo, $comments.html());
-		})
-		.catch(onRequestError);
-	if (config.commentDelay) await sleep(config.commentDelay);
 };
 
 const requestComments = (projectId, todoId) =>
@@ -114,9 +102,9 @@ const requestComments = (projectId, todoId) =>
 		transform: body => cheerio.load(body)
 	});
 
-const saveComments = async (projectName, listName, todo, commentHtml) => {
-	if (!commentHtml) return console.error('Comment Null or Undefined', projectName, listName, todo, commentHtml);
-	let fileName = 'Todo_' + todo.id + '_' + projectName.replace(/\s/g, '_') + '_' + listName.replace(/\s/g, '_') + '_' + todo.title.replace(/[/\\?%*:|"<>]/g, '-').replace(/\s/g, '_') + '.txt';
+const saveComments = async (fileName, commentHtml) => {
+	if (!fileName) return console.error('Invalid File Name', fileName);
+	if (!commentHtml) return console.error('Invalid Content', commentHtml);
 	fs.writeFile(fileName, commentHtml, err => {
 		if (err) return console.error(err);
 		console.log('Comment Saved at ' + fileName);
@@ -132,7 +120,5 @@ requestProject(config.projectId)
 		console.info(project.lists.length + ' Lists Found');
 		saveProject(project);
 		getComments(project);
-		//getTodoComments(project, project.lists[1], project.lists[1].todos[0]);
-		//console.log('Results', project);
 	})
 	.catch(onRequestError);
