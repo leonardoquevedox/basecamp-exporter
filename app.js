@@ -2,6 +2,10 @@ const requestPromise = require('request-promise')
 const cheerio = require('cheerio')
 const fs = require('fs')
 const pad = require('pad')
+const dotenv = require('dotenv')
+const path = require('path')
+
+dotenv.config()
 
 const config = {
   account: process.env.BASECAMP_ACCOUNT,
@@ -10,27 +14,30 @@ const config = {
   sessionCookie: process.env.BASECAMP_SESSION_COOKIE,
 }
 
+const EXPORT_FOLDER = process.env.EXPORT_FOLDER || 'export'
+
+const { log, error: logError } = console
+
 const onRequestError = (error) => {
-  console.error(error)
+  logError(error)
 }
 
-const getTodoLists = ($) => {
-  return $('.todolist')
+const getTodoLists = ($) =>
+  $('.todolist')
     .map((i, e) => {
-      let $wrapper = $(e)
+      const $wrapper = $(e)
       return {
         id: $wrapper.attr('data-recording-id'),
-        name:
-          `US${pad(3, i + 1, '0')}: ` +
+        name: `US${pad(3, i + 1, '0')}: `.concat(
           $wrapper
             .find('.todolist__permalink')
             .text()
             .replace(/(^\s+|[\t\r\n]|\s+$)/g, ''),
+        ),
         content: $wrapper.find('.todolist__description--truncated a').attr('title') || '',
       }
     })
     .get()
-}
 
 const getProjectMetadata = ($) => ({
   id: config.projectId,
@@ -41,14 +48,13 @@ const getProjectMetadata = ($) => ({
 const parseProjectInfo = ($) => {
   const project = getProjectMetadata($)
   for (let i = 0; i < project.lists.length; i++) {
-    let list = project.lists[i]
-    let $items = $('#recording_' + list.id + ' .todo')
-    console.log('#recording_' + list.id + ' .todo')
+    const list = project.lists[i]
+    const $items = $(`#recording_${list.id} .todo`)
     list.tasks = $items
-      .map((i, e) => {
-        let $item = $(e)
-        let itemId = $item.attr('data-recording-id')
-        let $title = $item.find('a')
+      .map((j, e) => {
+        const $item = $(e)
+        const itemId = $item.attr('data-recording-id')
+        const $title = $item.find('a')
         return {
           // id: itemId,
           title: $title.text().replace(/(^\s+|[\t\r\n]|\s+$)/g, ''),
@@ -60,12 +66,16 @@ const parseProjectInfo = ($) => {
 }
 
 const saveProject = async (project) => {
-  if (!project) return console.error('Project Null or Undefined', project)
-  let fileName = 'Project_' + project.id + '_' + project.name.replace(/\s/g, '_') + '.json'
-  fs.writeFile(fileName, JSON.stringify(project, null, 1), (err) => {
-    if (err) return console.error(err)
-    console.log('Project Saved at ' + fileName)
-  })
+  if (!project) return logError('Project Null or Undefined', project)
+  const fileName = `Project_${project.id}_${project.name.replace(/\s/g, '_')}.json`
+  fs.writeFile(
+    path.join(__dirname, EXPORT_FOLDER, fileName),
+    JSON.stringify(project, null, 1),
+    (err) => {
+      if (err) return logError(err)
+      log(`Project saved at "${fileName}"!`)
+    },
+  )
 }
 
 const requestProject = (projectId) =>
@@ -79,12 +89,12 @@ const requestProject = (projectId) =>
   })
 
 // Execute
-console.log('Running ...')
+log('Fetching project data...')
 requestProject(config.projectId)
   .then(($) => {
-    console.info('Project Received')
-    let project = parseProjectInfo($)
-    console.info(project.lists.length + ' Lists Found')
+    log('Project data received!')
+    const project = parseProjectInfo($)
+    log(`${project.lists.length} ToDo lists found!`)
     saveProject(project)
   })
   .catch(onRequestError)
