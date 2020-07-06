@@ -1,15 +1,18 @@
 {
-  "author": {},
+  "author": {
+    "name": "Leonardo Quevedo",
+    "email": "lpachecoquevedo@gmail.com",
+    "url": "https://leonardoquevedo.com"
+  },
   "license": "MIT",
   "scripts": {
     "start": "node app.js"
   },
   "dependencies": {
+    "axios": "^0.19.2",
     "cheerio": "^1.0.0-rc.3",
     "dotenv": "^8.2.0",
-    "pad": "^3.2.0",
-    "request": "^2.88.2",
-    "request-promise": "^4.2.5"
+    "pad": "^3.2.0"
   },
   "devDependencies": {
     "babel-eslint": "^10.1.0",

@@ -1,4 +1,4 @@
-const requestPromise = require('request-promise')
+const axios = require('axios')
 const cheerio = require('cheerio')
 const fs = require('fs')
 const pad = require('pad')
@@ -79,14 +79,13 @@ const saveProject = async (project) => {
 }
 
 const requestProject = (projectId) =>
-  requestPromise({
-    uri: `https://3.basecamp.com/${config.account}/buckets/${projectId}/recordings/1720944481/archive`,
+  axios({
+    url: `https://3.basecamp.com/${config.account}/buckets/${projectId}/recordings/1720944481/archive`,
     headers: {
       'User-Agent': 'Request-Promise',
       Cookie: config.sessionCookie,
     },
-    transform: (body) => cheerio.load(body),
-  })
+  }).then(({ data }) => cheerio.load(data))
 
 // Execute
 log('Fetching project data...')
