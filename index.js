@@ -39,14 +39,7 @@ const getTodoLists = ($) =>
     })
     .get()
 
-const getProjectMetadata = ($) => ({
-  id: config.projectId,
-  name: config.projectName,
-  lists: getTodoLists($),
-})
-
-const parseProjectInfo = ($) => {
-  const project = getProjectMetadata($)
+const parseProjectTasks = (project, $) => {
   for (let i = 0; i < project.lists.length; i++) {
     const list = project.lists[i]
     const $items = $(`#recording_${list.id} .todo`)
@@ -62,6 +55,17 @@ const parseProjectInfo = ($) => {
       })
       .get()
   }
+}
+
+const getProjectMetadata = ($) => ({
+  id: config.projectId,
+  name: config.projectName,
+  lists: getTodoLists($),
+})
+
+const parseProjectInfo = ($) => {
+  const project = getProjectMetadata($)
+  // parseProjectTasks(project, $)
   return project
 }
 
